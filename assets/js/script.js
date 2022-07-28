@@ -47,19 +47,14 @@ var saveTasks = function() {
 };
 
 var auditTask = function(taskEl) {
-
   // get date from task element
   var date = $(taskEl)
     .find("span")
     .text()
     .trim();
 
-  console.log(date);
-
   // convert to moment object at 5:00pm
   var time = moment(date, "L").set("hour", 17);
-
-  console.log(time);
 
   // remove any old classes from element
   $(taskEl).removeClass("list-group-item-warning list-group-item-danger");
@@ -67,8 +62,7 @@ var auditTask = function(taskEl) {
   // apply new class if task is near/over due date
   if (moment().isAfter(time)) {
     $(taskEl).addClass("list-group-item-danger");
-  } 
-  else if (Math.abs(moment().diff(time, "days")) <= 2) {
+  } else if (Math.abs(moment().diff(time, "days")) <= 2) {
     $(taskEl).addClass("list-group-item-warning");
   }
 };
@@ -81,28 +75,19 @@ $(".card .list-group").sortable({
   tolerance: "pointer",
   helper: "clone",
   activate: function(event, ui) {
-    $(this).addClass("dropover", "dropover-active", "bottom-trash", "bottom-trash-drag");
-
+    $(this).addClass("dropover");
+    $(".bottom-trash").addClass("bottom-trash-drag");
   },
   deactivate: function(event, ui) {
-    $(this).addClass("bottom-trash")
-    $(this).removeClass("dropover", "bottom-trash-drag");
+    $(this).removeClass("dropover");
+    $(".bottom-trash").removeClass("bottom-trash-drag");
   },
   over: function(event) {
-    $(event.target).addClass("dropover-active", "bottom-trash");
-    $(this).removeClass("bottom-trash-drag");
+    $(event.target).addClass("dropover-active");
   },
   out: function(event) {
-    $(event.target).removeClass("dropover-active", "bottom-trash-active");
-    $(event.target).addClass("bottom-trash");
+    $(event.target).removeClass("dropover-active");
   },
-
-  drop: function (event){
-    $(event.target).removeClass("dropover-active", "bottom-trash-active");
-    $(event.target).addClass("bottom-trash");
-  },
-
-
   update: function() {
     var tempArr = [];
 
@@ -131,9 +116,6 @@ $(".card .list-group").sortable({
     // update array on tasks object and save
     tasks[arrName] = tempArr;
     saveTasks();
-  },
-  stop: function(event) {
-    $(this).removeClass("dropover");
   }
 });
 
@@ -144,12 +126,14 @@ $("#trash").droppable({
   drop: function(event, ui) {
     // remove dragged element from the dom
     ui.draggable.remove();
+    $(".bottom-trash").removeClass("bottom-trash-active");
   },
   over: function(event, ui) {
     console.log(ui);
+    $(".bottom-trash").addClass("bottom-trash-active");
   },
   out: function(event, ui) {
-    console.log(ui);
+    $(".bottom-trash").removeClass("bottom-trash-active");
   }
 });
 
@@ -300,8 +284,9 @@ $("#remove-tasks").on("click", function() {
 // load tasks for the first time
 loadTasks();
 
-setInterval(function () {
-  $(".card .list-group-item").each(function(index, el) {
-    auditTask(el);
+// audit task due dates every 30 minutes
+setInterval(function() {
+  $(".card .list-group-item").each(function() {
+    auditTask($(this));
   });
-}, (1000 * 60) * 30);
+}, 1800000);
